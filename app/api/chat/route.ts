@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { classifyZone } from '@/lib/safety';
 import { applyTemplate } from '@/lib/templates';
-import { findBestAnswer } from '@/lib/search';   // helper added
+import { findBestAnswer } from '@/lib/search';
 
 export async function POST(req: Request) {
   const { userMsg } = await req.json();
@@ -15,6 +15,5 @@ export async function POST(req: Request) {
   // 3 · wrap with disclaimer / advisory / refusal if needed
   answer = applyTemplate(zone, answer);
 
-  // 4 · return JSON to the front-end
   return NextResponse.json({ answer, zone });
 }
