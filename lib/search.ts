@@ -1,30 +1,35 @@
-import { corpus } from '@/lib/corpus';  // <-- note the "/"
+import { corpus } from '@/lib/corpus';
 
- /**
-  * Very simple keyword-overlap search.
-  * Returns the Response string of the best-matching record in the corpus.
-  */
- export function findBestAnswer(userMsg: string): string {
-   const q = userMsg.toLowerCase();
+export interface SearchResult {
+  response: string;
+  score: number; // number of keyword overlaps
+}
 
-   // 1 · exact substring match
-   const exact = corpus.find(r =>
-     q.includes(r['User Prompt'].toLowerCase())
-   );
-   if (exact) return exact.Response;
+/**
+ * Returns the best-matching record _and_ its overlap score.
+ */
+export function findBestMatch(userMsg: string): SearchResult {
+  const q = userMsg.toLowerCase();
 
-   // 2 · keyword overlap scoring
-   const keywords = q.split(/\W+/).filter(w => w.length > 2);
-   let best = corpus[0];
-   let bestScore = 0;
+  // 1 · exact substring match
+  const exact = corpus.find(r =>
+    q.includes(r['User Prompt'].toLowerCase())
+  );
+  if (exact) return { response: exact.Response, score: Infinity };
 
-   for (const rec of corpus) {
-     const recWords = rec['User Prompt'].toLowerCase().split(/\W+/);
-     const score = keywords.filter(k => recWords.includes(k)).length;
-     if (score > bestScore) {
-       bestScore = score;
-       best = rec;
-     }
-   }
-   return best.Response;
- }
+  // 2 · keyword overlap scoring
+  const keywords = q.split(/\W+/).filter(w => w.length > 2);
+  let best = corpus[0];
+  let bestScore = 0;
+
+  for (const rec of corpus) {
+    const recWords = rec['User Prompt'].toLowerCase().split(/\W+/);
+    const score = keywords.filter(k => recWords.includes(k)).length;
+    if (score > bestScore) {
+      bestScore = score;
+      best = rec;
+    }
+  }
+
+  return { response: best.Response, score: bestScore };
+}
